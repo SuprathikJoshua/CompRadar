@@ -11,3 +11,137 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─────────────────────────────────────────
+// CORE: rivals + targets
+// ─────────────────────────────────────────
+
+model Rival {
+  id      Int      @id @default(autoincrement())
+  name    String
+  baseUrl String
+  targets Target[]
+}
+
+model Target {
+  id            Int      @id @default(autoincrement())
+  rival         Rival    @relation(fields: [rivalId], references: [id])
+  rivalId       Int
+  type          String   // 'price' | 'changelog' | 'copy'
+  url           String
+  scraperConfig String?
+
+  snapshots      Snapshot[]
+  changes        Change[]
+  healEvents     HealEvent[]
+  manualTriggers ManualTrigger[]
+}
+
+// ─────────────────────────────────────────
+// SNAPSHOTS
+// ─────────────────────────────────────────
+
+model Snapshot {
+  id          Int      @id @default(autoincrement())
+  target      Target   @relation(fields: [targetId], references: [id])
+  targetId    Int
+  contentHash String
+  scrapedAt   DateTime @default(now())
+
+  priceDetails     PriceDetail[]
+  changelogEntries ChangelogEntry[]
+  copyBlocks       CopyBlock[]
+
+  changesAsOld Change[] @relation("OldSnapshot")
+  changesAsNew Change[] @relation("NewSnapshot")
+}
+
+model PriceDetail {
+  id            Int      @id @default(autoincrement())
+  snapshot      Snapshot @relation(fields: [snapshotId], references: [id])
+  snapshotId    Int
+  planName      String
+  priceAmount   Decimal
+  currency      String
+  billingPeriod String
+}
+
+model ChangelogEntry {
+  id          Int      @id @default(autoincrement())
+  snapshot    Snapshot @relation(fields: [snapshotId], references: [id])
+  snapshotId  Int
+  entryTitle  String
+  entryDate   DateTime?
+  description String?
+  category    String?
+}
+
+model CopyBlock {
+  id          Int      @id @default(autoincrement())
+  snapshot    Snapshot @relation(fields: [snapshotId], references: [id])
+  snapshotId  Int
+  sectionName String
+  copyText    String
+}
+
+// ─────────────────────────────────────────
+// CHANGES
+// ─────────────────────────────────────────
+
+model Change {
+  id            Int       @id @default(autoincrement())
+  target        Target    @relation(fields: [targetId], references: [id])
+  targetId      Int
+  oldSnapshot   Snapshot? @relation("OldSnapshot", fields: [oldSnapshotId], references: [id])
+  oldSnapshotId Int?
+  newSnapshot   Snapshot  @relation("NewSnapshot", fields: [newSnapshotId], references: [id])
+  newSnapshotId Int
+
+  diffRaw    Json
+  llmSummary String?
+  severity   String?
+  sourceUrl  String
+  createdAt  DateTime @default(now())
+
+  alerts AlertSent[]
+}
+
+// ─────────────────────────────────────────
+// SELF-HEAL
+// ─────────────────────────────────────────
+
+model HealEvent {
+  id              Int       @id @default(autoincrement())
+  target          Target    @relation(fields: [targetId], references: [id])
+  targetId        Int
+  brokenSelector  String
+  detectedAt      DateTime
+  recoveredAt     DateTime?
+  downtimeSeconds Int?
+  recoveryMethod  String?
+  status          String
+}
+
+// ─────────────────────────────────────────
+// ALERTS
+// ─────────────────────────────────────────
+
+model AlertSent {
+  id       Int      @id @default(autoincrement())
+  change   Change   @relation(fields: [changeId], references: [id])
+  changeId Int
+  channel  String
+  sentAt   DateTime @default(now())
+  status   String
+}
+
+// ─────────────────────────────────────────
+// MANUAL TRIGGER
+// ─────────────────────────────────────────
+
+model ManualTrigger {
+  id          Int      @id @default(autoincrement())
+  target      Target   @relation(fields: [targetId], references: [id])
+  targetId    Int
+  triggeredAt DateTime @default(now())
+}
