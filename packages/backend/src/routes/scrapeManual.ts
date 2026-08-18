@@ -39,25 +39,35 @@ export async function scrapeManual(req: Request, res: Response) {
 		return res.status(429).json({ error: "cooldown", retryAt });
 	}
 
-	// Weekly cap check (3 per week)
-	const triggersInLastWeek = await prisma.manualTrigger.count({
+	// Weekly cap check (3 per week) — fixed: nextAvailableAt derived from
+	// the oldest trigger in the window, not from the window edge itself
+	const triggersInLastWeek = await prisma.manualTrigger.findMany({
 		where: {
 			targetId,
 			triggeredAt: { gte: oneWeekAgo },
 		},
+		orderBy: { triggeredAt: "asc" },
 	});
 
-	if (triggersInLastWeek >= 3) {
+	if (triggersInLastWeek.length >= 3) {
+		const oldestTrigger = triggersInLastWeek[0]!;
 		const nextAvailableAt = new Date(
-			oneWeekAgo.getTime() + 7 * 24 * 60 * 60 * 1000,
+			oldestTrigger.triggeredAt.getTime() + 7 * 24 * 60 * 60 * 1000,
 		);
 		return res
 			.status(429)
 			.json({ error: "weekly_cap_reached", nextAvailableAt });
 	}
 
+	// Path 2: record the attempt BEFORE calling the scraper. Every attempt
+	// burns a Bright Data credit whether it succeeds or fails, so every
+	// attempt must count against cooldown/cap — otherwise a broken target
+	// (e.g. Oxylabs domain block) lets a user retry unlimited times.
+	await prisma.manualTrigger.create({
+		data: { targetId },
+	});
+
 	try {
-		// Route to scraper
 		let snapshot;
 		if (target.type === "price") {
 			if (target.rival.name === "Oxylabs")
@@ -70,10 +80,6 @@ export async function scrapeManual(req: Request, res: Response) {
 		} else {
 			throw new Error("Target type not supported for manual trigger");
 		}
-
-		await prisma.manualTrigger.create({
-			data: { targetId },
-		});
 
 		return res.status(200).json({ success: true, snapshotId: snapshot.id });
 	} catch (error) {
