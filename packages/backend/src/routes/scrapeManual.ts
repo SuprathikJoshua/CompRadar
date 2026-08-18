@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { scrapeOxylabsPrice } from "../services/scrapeOxylabsPrice";
 import { scrapeApifyPrice } from "../services/scrapeApifyPrice";
@@ -33,7 +33,9 @@ export async function scrapeManual(req: Request, res: Response) {
 	});
 
 	if (recentTrigger) {
-		const retryAt = new Date(recentTrigger.triggeredAt.getTime() + 24 * 60 * 60 * 1000);
+		const retryAt = new Date(
+			recentTrigger.triggeredAt.getTime() + 24 * 60 * 60 * 1000,
+		);
 		return res.status(429).json({ error: "cooldown", retryAt });
 	}
 
@@ -46,17 +48,24 @@ export async function scrapeManual(req: Request, res: Response) {
 	});
 
 	if (triggersInLastWeek >= 3) {
-		const nextAvailableAt = new Date(oneWeekAgo.getTime() + 7 * 24 * 60 * 60 * 1000);
-		return res.status(429).json({ error: "weekly_cap_reached", nextAvailableAt });
+		const nextAvailableAt = new Date(
+			oneWeekAgo.getTime() + 7 * 24 * 60 * 60 * 1000,
+		);
+		return res
+			.status(429)
+			.json({ error: "weekly_cap_reached", nextAvailableAt });
 	}
 
 	try {
 		// Route to scraper
 		let snapshot;
 		if (target.type === "price") {
-			if (target.rival.name === "Oxylabs") snapshot = await scrapeOxylabsPrice();
-			else if (target.rival.name === "Apify") snapshot = await scrapeApifyPrice();
-			else if (target.rival.name === "Firecrawl") snapshot = await scrapeFirecrawlPrice();
+			if (target.rival.name === "Oxylabs")
+				snapshot = await scrapeOxylabsPrice();
+			else if (target.rival.name === "Apify")
+				snapshot = await scrapeApifyPrice();
+			else if (target.rival.name === "Firecrawl")
+				snapshot = await scrapeFirecrawlPrice();
 			else throw new Error("No scraper for this rival");
 		} else {
 			throw new Error("Target type not supported for manual trigger");
