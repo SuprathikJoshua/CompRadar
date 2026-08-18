@@ -42,8 +42,18 @@ export async function pollForResults<T = unknown>(
 		});
 		if (!res.ok)
 			throw new Error(`poll failed: ${res.status} ${await res.text()}`);
+
 		const data = await res.json();
-		if (Array.isArray(data)) return data as T[];
+
+		if (Array.isArray(data)) {
+			if (data.length > 0) return data as T[];
+			// empty array — still building
+		} else if (data && typeof data === "object" && !("status" in data)) {
+			// real result object, no job-status wrapper — actually ready
+			if (Object.keys(data).length > 0) return [data] as T[];
+		}
+		// else: {"status": "...", ...} — still building, poll again
+
 		console.log(
 			`snapshot ${snapshotId}: attempt ${attempt}/${maxAttempts}, not ready`,
 		);
