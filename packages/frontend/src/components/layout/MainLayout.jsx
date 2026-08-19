@@ -1,12 +1,17 @@
 import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
 
 export default function MainLayout({ children }) {
   return (
-    <div className="bg-slate-950 min-h-screen">
+    <div className="min-h-screen bg-slate-950">
       <Sidebar />
 
       <div className="ml-64">
-        {children}
+        <Topbar />
+
+        <main>
+          {children}
+        </main>
       </div>
     </div>
   );
