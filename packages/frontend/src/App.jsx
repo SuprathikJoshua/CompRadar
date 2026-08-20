@@ -1,43 +1,35 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import MainLayout from "./components/layout/MainLayout";
 
+import LoginPage from "./features/login";
+import Onboarding from "./features/onboarding";
+
 import Overview from "./features/overview";
-import Workspace from "./features/workspace";
 import Rivals from "./features/rivals";
 import Alerts from "./features/alerts";
 import SelfHeal from "./features/self-heal";
+import Settings from "./features/settings";
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Overview />} />
+      <Routes>
 
-          <Route
-            path="/workspace"
-            element={<Workspace />}
-          />
+        <Route path="/" element={<Navigate to="/login" />} />
 
-          <Route
-            path="/rivals"
-            element={<Rivals />}
-          />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/onboarding" element={<Onboarding />} />
 
-          <Route
-            path="/alerts"
-            element={<Alerts />}
-          />
+        <Route element={<MainLayout />}>
+          <Route path="/dashboard" element={<Overview />} />
+          <Route path="/rivals" element={<Rivals />} />
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/self-heal" element={<SelfHeal />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
 
-          <Route
-            path="/self-heal"
-            element={<SelfHeal />}
-          />
-        </Routes>
-      </MainLayout>
+      </Routes>
     </BrowserRouter>
   );
 }
-
-export default App;
