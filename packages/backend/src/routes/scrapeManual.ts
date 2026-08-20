@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { scrapeOxylabsPrice } from "../services/scrapeOxylabsPrice";
 import { scrapeApifyPrice } from "../services/scrapeApifyPrice";
 import { scrapeFirecrawlPrice } from "../services/scrapeFirecrawlPrice";
 
@@ -62,7 +61,6 @@ export async function scrapeManual(req: Request, res: Response) {
 	// Path 2: record the attempt BEFORE calling the scraper. Every attempt
 	// burns a Bright Data credit whether it succeeds or fails, so every
 	// attempt must count against cooldown/cap — otherwise a broken target
-	// (e.g. Oxylabs domain block) lets a user retry unlimited times.
 	await prisma.manualTrigger.create({
 		data: { targetId },
 	});
@@ -70,10 +68,7 @@ export async function scrapeManual(req: Request, res: Response) {
 	try {
 		let snapshot;
 		if (target.type === "price") {
-			if (target.rival.name === "Oxylabs")
-				snapshot = await scrapeOxylabsPrice();
-			else if (target.rival.name === "Apify")
-				snapshot = await scrapeApifyPrice();
+			if (target.rival.name === "Apify") snapshot = await scrapeApifyPrice();
 			else if (target.rival.name === "Firecrawl")
 				snapshot = await scrapeFirecrawlPrice();
 			else throw new Error("No scraper for this rival");
