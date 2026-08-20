@@ -2,6 +2,6 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get("/alerts");
+router.get("/");
 
 export default router;
