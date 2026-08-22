@@ -1,34 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-import MainLayout from "./components/layout/MainLayout";
-
-import LoginPage from "./features/login";
-import Onboarding from "./features/onboarding";
-
-import Overview from "./features/overview";
-import Rivals from "./features/rivals";
-import Alerts from "./features/alerts";
-import SelfHeal from "./features/self-heal";
-import Settings from "./features/settings";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
+import OverviewPage from './pages/OverviewPage';
+import WorkspacePage from './pages/WorkspacePage';
+import RivalsPage from './pages/RivalsPage';
+import AlertsPage from './pages/AlertsPage';
+import SelfHealPage from './pages/SelfHealPage';
+import SettingsPage from './pages/SettingsPage';
+import LoginPage from './pages/LoginPage';
+import OnboardingPage from './pages/OnboardingPage';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        <Route path="/" element={<Navigate to="/login" />} />
-
+        {/* Full-screen Standalone Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
 
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Overview />} />
-          <Route path="/rivals" element={<Rivals />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/self-heal" element={<SelfHeal />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
-
+        {/* Dashboard Routes Wrapped in MainLayout */}
+        <Route path="/" element={<MainLayout><OverviewPage /></MainLayout>} />
+        <Route path="/workspace" element={<MainLayout><WorkspacePage /></MainLayout>} />
+        <Route path="/rivals" element={<MainLayout><RivalsPage /></MainLayout>} />
+        <Route path="/alerts" element={<MainLayout><AlertsPage /></MainLayout>} />
+        <Route path="/self-heal" element={<MainLayout><SelfHealPage /></MainLayout>} />
+        <Route path="/settings" element={<MainLayout><SettingsPage /></MainLayout>} />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<MainLayout><OverviewPage /></MainLayout>} />
       </Routes>
     </BrowserRouter>
   );
