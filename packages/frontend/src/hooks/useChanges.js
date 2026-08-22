@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { getAlerts } from "../services/alerts.service";
+import { getChanges } from "../services/changes.service";
 
-export const useAlerts = () => {
+export const useChanges = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAlerts = async () => {
+    const fetchChanges = async () => {
       try {
         setLoading(true);
-        const alerts = await getAlerts();
-        setData(alerts);
+        const changes = await getChanges();
+        setData(changes);
         setError(null);
       } catch (err) {
         setError(err.message);
@@ -21,7 +21,7 @@ export const useAlerts = () => {
       }
     };
 
-    fetchAlerts();
+    fetchChanges();
   }, []);
 
   return { data, loading, error };

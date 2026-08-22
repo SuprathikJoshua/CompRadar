@@ -2,24 +2,40 @@ import { prisma } from '../lib/prisma';
 
 export async function getStats() {
   const [
-    totalTargets,
-    totalChanges,
+    rivalsTracked,
+    targetsTracked,
+    totalChangesDetected,
     totalHealEvents,
-    totalAlerts,
-    totalSnapshots
+    healEventsRecovered,
+    avgDowntimeResult,
+    lastSnapshot
   ] = await prisma.$transaction([
+    prisma.rival.count(),
     prisma.target.count(),
     prisma.change.count(),
     prisma.healEvent.count(),
-    prisma.alertSent.count(),
-    prisma.snapshot.count()
+    prisma.healEvent.count({ where: { status: 'recovered' } }),
+    prisma.healEvent.aggregate({
+      _avg: {
+        downtimeSeconds: true,
+      },
+    }),
+    prisma.snapshot.findFirst({
+      orderBy: { scrapedAt: 'desc' },
+      select: { scrapedAt: true },
+    }),
   ]);
 
+  const averageDowntimeSeconds = avgDowntimeResult._avg.downtimeSeconds ?? 0;
+  const lastScrapedAt = lastSnapshot?.scrapedAt ?? null;
+
   return {
-    totalTargets,
-    totalChanges,
+    rivalsTracked,
+    targetsTracked,
+    totalChangesDetected,
     totalHealEvents,
-    totalAlerts,
-    totalSnapshots
+    healEventsRecovered,
+    averageDowntimeSeconds,
+    lastScrapedAt,
   };
 }
