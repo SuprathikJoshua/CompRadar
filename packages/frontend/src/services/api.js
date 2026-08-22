@@ -10,7 +10,19 @@ export const apiGet = async (path) => {
     return response.data;
   } catch (error) {
     const status = error.response?.status || 500;
-    const message = error.response?.data?.message || error.message || "API request failed";
+    const message = error.response?.data?.error || error.response?.data?.message || error.message || "API request failed";
     throw new Error(`API Error ${status}: ${message}`);
   }
 };
+
+export const apiPost = async (path, data = {}) => {
+  try {
+    const response = await api.post(path, data);
+    return response.data;
+  } catch (error) {
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.error || error.response?.data?.message || error.message || "API request failed";
+    throw new Error(`API Error ${status}: ${message}`);
+  }
+};
+

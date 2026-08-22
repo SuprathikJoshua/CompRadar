@@ -7,6 +7,7 @@ import alertsRoutes from "./routes/alerts.routes";
 import healEventsRoutes from "./routes/healEvents.routes";
 import statsRoutes from "./routes/stats.routes";
 import scraperRoutes from "./routes/scraper.route";
+import rivalsRoutes from "./routes/rivals.routes";
 import { requestLogger } from "./middleware/requestLogger";
 import { notFoundHandler } from "./middleware/notFoundHandler";
 import { errorHandler } from "./middleware/errorHandler";
@@ -26,6 +27,7 @@ app.get("/health", (_req, res) => {
 });
 
 // Explicit route mounts
+app.use("/api/rivals", rivalsRoutes);
 app.use("/api/changes", changesRoutes);
 app.use("/api/alerts", alertsRoutes);
 app.use("/api/heal-events", healEventsRoutes);
