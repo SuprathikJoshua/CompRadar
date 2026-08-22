@@ -10,6 +10,7 @@ import scraperRoutes from "./routes/scraper.route";
 import { requestLogger } from "./middleware/requestLogger";
 import { notFoundHandler } from "./middleware/notFoundHandler";
 import { errorHandler } from "./middleware/errorHandler";
+import { asyncHandler } from "./middleware/asyncHandler";
 import { startScheduler } from "./lib/scheduler";
 
 const app = express();
@@ -19,12 +20,19 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
+// Health check endpoint
+app.get("/health", (_req, res) => {
+	res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 // Explicit route mounts
 app.use("/api/changes", changesRoutes);
 app.use("/api/alerts", alertsRoutes);
 app.use("/api/heal-events", healEventsRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/scheduler", scraperRoutes);
+app.post("/api/scrape/manual", asyncHandler(scrapeManual));
+app.get("/api/scrape/manual", asyncHandler(scrapeManual));
 
 // Error handling
 app.use(notFoundHandler);

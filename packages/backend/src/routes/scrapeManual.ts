@@ -4,7 +4,7 @@ import { scrapeApifyPrice } from "../services/scrapeApifyPrice";
 import { scrapeFirecrawlPrice } from "../services/scrapeFirecrawlPrice";
 
 export async function scrapeManual(req: Request, res: Response) {
-	const { targetId } = req.body;
+	const { targetId } = req.body || {};
 	if (typeof targetId !== "number") {
 		return res.status(400).json({ error: "Invalid targetId" });
 	}
